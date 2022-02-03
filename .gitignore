@@ -21,6 +21,7 @@ test-output.*
 /tests/keys/localhost.crt
 /tests/keys/localhost.key
 *.json
+*.db
 
 # Windows
 Thumbs.db
