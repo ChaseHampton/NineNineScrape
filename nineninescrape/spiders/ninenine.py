@@ -30,7 +30,7 @@ class NinenineSpider(scrapy.Spider):
             item = NineninescrapeItem()
             qid = div.xpath('@id').get().split('_')[-1]
             curs.execute("select id from ids where id = :id", {"id": qid})
-            if curs.fetchall() is not None:
+            if curs.fetchone():
                 item['id'] = qid
                 quote = ''.join(div.xpath('./div/p//text()').getall())
                 if quote is not None:
