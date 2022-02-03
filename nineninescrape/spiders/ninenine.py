@@ -5,6 +5,9 @@ from ..items import NineninescrapeItem
 
 
 class NinenineSpider(scrapy.Spider):
+    def __init__(self, reset=False, *args, **kwargs):
+        super(NinenineSpider, self).__init__(*args, **kwargs)
+        self.reset = reset
     name = 'ninenine'
     allowed_domains = ['theninenine.com']
     con = sqlite3.connect('ids.db')
@@ -12,6 +15,8 @@ class NinenineSpider(scrapy.Spider):
     def start_requests(self):
         url = 'https://theninenine.com/quotes/latest/'
         curs = self.con.execute('CREATE TABLE IF NOT EXISTS ids (id int);')
+        if self.reset:
+            curs.execute('delete from ids')
         self.con.commit()
         curs.close()
         yield scrapy.Request(url, callback=self.parse)
@@ -24,13 +29,12 @@ class NinenineSpider(scrapy.Spider):
         next_url = response.css('div.pageLinkRight').xpath('.//a/@href').get()
 
         quote_divs = response.css('div.quotesDiv')
-        page_ps = response.css('div.quotesDiv').xpath('./div/p')
         for div in quote_divs:
             curs = self.con.cursor()
             item = NineninescrapeItem()
             qid = div.xpath('@id').get().split('_')[-1]
             curs.execute("select id from ids where id = :id", {"id": qid})
-            if curs.fetchone():
+            if curs.fetchone() is None:
                 item['id'] = qid
                 quote = ''.join(div.xpath('./div/p//text()').getall())
                 if quote is not None:
